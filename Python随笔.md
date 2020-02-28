@@ -271,17 +271,198 @@ demo一看就懂，不赘述
 
 _x : import a后欲用其中的变量或函数需要写a.xxx的形式，from a import *则可以让代码中免写模块名，相当于把a中所有对象都导入，然而并不能导入以下划线开头的变量(但是以其它形式导入是完全没问题的)  plus: *同样无法导入双下划线开头的变量：__x，__x__,**即只要是以下划线开头的变量都无法通过这种方法导入**，**但是注意若变量在类定义中，则是可以导入这个类，其使用也完全不受影响**。  **注意__x__并不是私有变量，在子类可以使用，也可以在类定义外通过 .__x__获取 （已测试）。** 
 
-__x: 如图，__name经过了命名重整化，无法在类定义之外通过a.name获得，如果我们直接在外部写上对a.name(类定义中没提到的变量在其外部直接写是没问题的)的赋值语句就相当于增加了另一个变量，不会对它产生影响，但是我们可以通过其他方式获取到(如图中的__Test__name)
+__x: 如图，__name经过了命名重整化，无法在类定义之外通过a.name获得，如果我们直接在外部写上对a.name(类定义中没提到的变量在其外部直接写是没问题的)的赋值语句就相当于增加了另一个变量，不会对它产生影响，但是我们可以通过其他方式获取到(如图中的\__Test__name)
 
 ![img](file:///C:\Users\ton\AppData\Local\Temp\ksohtml9124\wps6.png) 
 
  
 
+### 方法解析顺序表MRO
+
+**多继承中MRO顺序**
+
+```python
+class Parent(object):
+    def __init__(self, name):
+        print("parent的init开始被调用")
+        self.name = name
+        print("parent的init结束被调用")
+        
+class Son1(Parent):
+    def __init__(self, name, age):
+    	print("Son1的init开始被调用")
+        self.age = age
+        Parent.__init__(self, name)
+        print("Son1的init结束被调用")
+        
+class Son2(Parent):
+    def __init__(self, name, gender):
+        print("Son2的init开始被调用")
+        self.gender = gender
+        Parent.__init__(self, name)
+        print("Son2的init结束被调用")
+        
+class Grandson(Son1, Son2):
+    def __init__(self, name, age, gender):
+        print("Grandson的init开始被调用")
+        Son1.__init__(self, name, age)
+        Son1.__init__(self, name, gender)
+        print("Grandson的init结束被调用")
+       
+#  运行结果：
+# Grandson的init开始被调用
+# Son1的init开始被调用
+# parent的init开始被调用
+# parent的init结束被调用
+# Son1的init结束被调用
+# Son2的init开始被调用
+# parent的init开始被调用
+# parent的init结束被调用
+# Son2的init结束被调用
+# Grandson的init结束被调用
+
+#  这种通过在子类中写 父类名.函数 的函数重写比把整个函数重写一遍精简，但是这里存在一个缺陷就是创建Grandson的实例对象时，Parent的__init__方法会被执行两次  可以设想这里如果Grandson继承了n个son,那么Parent的__init__会被调用n次 .
+            
+```
+
+
+
+```python
+class Parent(object):
+    def __init__(self, name, *args, **kwargs):   # 为避免多继承报错，使用不定长参数，接收参数
+        print("parent的init开始被调用")
+        self.name = name
+        print("parent的init结束被调用")
+        
+class Son1(Parent):
+    def __init__(self, name, age, *args, **kwargs):  # 为避免多继承报错，使用不定长参数，接收参数
+    	print("Son1的init开始被调用")
+        self.age = age
+        super().__init__(name, *args, **kwargs)  # 为避免多继承报错，使用不定长参数，接收参数
+        print("Son1的init结束被调用")
+        
+class Son2(Parent):
+    def __init__(self, name, gender, *args, **kwargs):#为避免多继承报错，使用不定长参数，接收参数
+        print("Son2的init开始被调用")
+        self.gender = gender
+        super().__init__(name, *args, **kwargs)  # 为避免多继承报错，使用不定长参数，接收参数
+        print("Son2的init结束被调用")
+        
+class Grandson(Son1, Son2):
+    def __init__(self, name, age, gender):
+        print("Grandson的init开始被调用")
+        #  super(Grandson, self).__init__(name, age, gender)   #[1]
+        super().__init__(name, age, gender) # [2]
+        print("Grandson的init结束被调用")
+        
+print(Grandson.__mro__)   # 注意不要写成.__mro__()
+
+
+# 打印出来的结果是一个tuple:
+# (<class '__main__.Grandson'>, <class '__main__.Son1'>, <class '__main__.Son2'>, 
+# <class  '__main__.Parent'>, <class 'object'>),这个tuple中的类的顺序就是MRO顺序, Grandson将按照
+# 此顺序来继承
+# 注意此时父类都需要加上不定长参数和关键字参数
+# super的__init__方法中没有self参数，此外super可以接受两个参数，如果是第一个参数是Son2,那么根据MRO
+# 将直接调用Parent的__init__方法.不写参数等价于[1]处的写法，即默认是传递当前的类作为super的参数.
+# [2]处这里由于Grandson有多个父类所以直接写自己的参数即可，不用像Son1和Son2一样写父类的参数+不定长参数
+```
+
+关于 \*args和\*\*kwargs的另外用处拆包
+
+```python
+def test2(a, b, *args, **kwargs):
+    print("----")
+    print(a)
+    print(b)
+    print(args)
+    print(kwargs)
+    
+def test1(a, b, *args, **kwargs):
+    print(a)
+    print(b)
+    print(args)
+    print(kwargs)
+    # test2(a, b, args, kwargs)            # [1]
+    # test2(a, b, *args, kwargs)           # [2]
+    test2(a, b, *args, **kwargs)           # [0]
+    
+test1(11, 12, 13, 14, 15, name="laowang", age=18)
+
+"""运行结果：
+11
+12
+(13, 14, 15)
+{'name': 'laowang', 'age': 18}
 ----
+11
+12
+(13, 14, 15)
+{'name': 'laowang', 'age': 18}
+"""
 
+
+# 不定长参数传入函数之后会成为一个tuple，关键字参数传入函数之后会称为一个字典
+# 如果这里用[1]处的写法代替，结果将为：
+"""
+11
+12
+(13, 14, 15)
+{'name': 'laowang', 'age': 18}
 ----
+11
+12
+((13, 14, 15), {'name': 'laowang', 'age': 18})
+{}
+"""      
+# 此时args这个元组, kwargs这个字典将作为test2的*args参数传进去
+# 如果这里用[2]处的写法代替，结果将为：
+"""
+11
+12
+(13, 14, 15)
+{'name': 'laowang', 'age': 18}
+----
+11
+12
+(13, 14, 15, {'name': 'laowang', 'age': 18})
+{}
+"""
+# 此时之前的args元组被拆开成为13, 14, 15
+# 结合[0], [1], [2]可知，*, **具有把tuple和dict拆开的功能
 
 
+```
+
+
+
+**plus: 面试题** 
+
+```python
+class Parent(object):
+    x = 1
+
+class Child1(Parent):
+    pass
+
+class Child2(Parent):
+    pass
+
+print(Parent.x, Child1.x, Child2.x)
+Child1.x = 2
+print(Parent.x, Child1.x, Child2.x)
+Parent.x = 3
+print(Parent.x, Child1.x, Child2.x)
+
+# 输出结果：
+# 1 1 1
+# 1 2 1
+# 3 2 3
+
+# 这里核心的东西就是 继承并不是复制父类中的变量或函数，而只是复制了引用，子类中的x指向了父类中的x，
+# 其次在子类中的变量会优先在自己的内部空间寻找，寻找失败后再从其父类中寻找，所以最后一组数是323而
+# 非321
+```
 
 
 
@@ -289,4 +470,4 @@ __x: 如图，__name经过了命名重整化，无法在类定义之外通过a.n
 
 
 
-[^1]: **以上节选自 04-python高级语法v3.1**   其中04-方法解析顺序表MRO完全未看  06/04-with、上下文管理器未看 .
+[^1]: **以上节选自 04-python高级语法v3.1**   其中06/04-with、上下文管理器未看 .
