@@ -26,7 +26,7 @@ Province.country
 
 
 
-​                        ![1582204270961](C:\Users\ton\AppData\Local\Temp\1582204270961.png) 
+​                        ![1582204270961](Python随笔.assets/1582204270961.png) 
 
 一个类在实例化的时候实际上做了两件事：
 
@@ -251,17 +251,17 @@ demo一看就懂，不赘述
 
 ### **关于浅拷贝和深拷贝：**
 
-![img](file:///C:\Users\ton\AppData\Local\Temp\ksohtml9124\wps1.png) 
+![img](Python随笔.assets/wps1.png) 
 
-![img](file:///C:\Users\ton\AppData\Local\Temp\ksohtml9124\wps2.png) 
+![img](Python随笔.assets/wps2.png) 
 
-![img](file:///C:\Users\ton\AppData\Local\Temp\ksohtml9124\wps3.png) 
+![img](Python随笔.assets/wps3.png) 
 
 不赘述，看图。另外注意list的切片操作和字典的copy方法(如a.copy(),a为字典)都属于浅拷贝。
 
 ### **关于类和私有变量：**
 
-![img](file:///C:\Users\ton\AppData\Local\Temp\ksohtml9124\wps4.jpg)   ![img](file:///C:\Users\ton\AppData\Local\Temp\ksohtml9124\wps5.jpg)
+![img](Python随笔.assets/wps4.jpg)   ![img](Python随笔.assets/wps5.jpg)
 
 类定义中没用self的变量可以被类和实例访问到，用self声名的变量只能被实例访问，所以截图中第三个print语句会出错。   实际运用中若希望各个实例可以获得不同的属性值，那么用self声名，反之直接声名。
 
@@ -273,7 +273,7 @@ _x : import a后欲用其中的变量或函数需要写a.xxx的形式，from a i
 
 __x: 如图，__name经过了命名重整化，无法在类定义之外通过a.name获得，如果我们直接在外部写上对a.name(类定义中没提到的变量在其外部直接写是没问题的)的赋值语句就相当于增加了另一个变量，不会对它产生影响，但是我们可以通过其他方式获取到(如图中的\__Test__name)
 
-![img](file:///C:\Users\ton\AppData\Local\Temp\ksohtml9124\wps6.png) 
+![img](Python随笔.assets/wps6.png) 
 
  
 
