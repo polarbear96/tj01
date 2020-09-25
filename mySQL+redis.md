@@ -550,7 +550,7 @@ insert into goods_cates (name) select cata_name from goods group by cata_name;
 
 update goods as g inner join goods_cates as c on g.cate_name=c.name set g.cate_name=c.id; 
 # 这是update和inner join的连用，类比select和inner join的连用，前者可以设置join之后的表中的属性值，后者是可以显示join之后的表的属性值. 
-# updates后用g还是goods? 必然是用原来的goods啊，并没有重命名. 
+
 
 alter table goods change cate_name cate_id int unsigned not null
 # alter table 表名 change 原字段名 现字段名  数据类型 约束条件
