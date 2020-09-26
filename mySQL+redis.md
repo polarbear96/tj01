@@ -243,6 +243,7 @@ select id as 序号, gender as 性别, name as 姓名 from students;
  
  select * from students where not age>18 and gender=2;
  #注意not的使用，MYSQL会将上一句解析成对age>18的否定，若写为not (age>18 and gender=2)则是对整体的否定 (这和正常逻辑是符合的)
+ # 注意not是写在条件之前的，不要写成注入 where age not = 18.
  
  select * from students where name like "小%";
  select * from students where name like "小_";
@@ -260,7 +261,7 @@ select id as 序号, gender as 性别, name as 姓名 from students;
   
  select * from students where age between 18 and 30 and gender=1 order by age desc;
  select * from students where age between 18 and 30 order by age desc,id desc;
-  以上两个语句为排序的使用，MySQL返回的数据默认按主键从小到大排列，这里order by age默认将搜到的结果按age值从小到大排列，+ desc将反向排列(从大到小)，   第二个句子有两个排序条件，在第一个不满足的情况下启用第二个.
+  以上两个语句为排序的使用，MySQL返回的数据默认按主键从小到大排列，这里order by age默认将搜到的结果按age值从小到大排列，+ desc将反向排列(从大到小)，   第二个句子有两个排序条件，在第一个不满足的情况下启用第二个.   desc就是之前查询表格属性的单词，在这里表示反向排序
 
   # > < >= <= = != like rlike in between    is null
   # 两个排序之间用逗号隔开,显然不可用and.
@@ -277,6 +278,10 @@ select count(*) from students where gender=1;
 select max(age) as ok from students where gender=1;
 select sum(age) as ok from students where gender=1;
 select avg(age) as ok from students where gender=1;
+
+# 显然即使不分组也可以使用聚合函数(相当于一个组)，但是分组了就只能显示分组所使用的字段以及相应的聚合函数 e.g. select gender, max(heigth),sum(age) from xiaomi group by gender; 如果写select * from xiaomi group by gender会出错，原因不赘述.
+# 显然即使不分组也可以使用having, 相当于每条记录都是一个组(后面会说到)。
+
 #以上的函数属于聚合函数，会返回一个名称和一个属性值，e.g:
 +---------+
 | ok      |
@@ -305,7 +310,7 @@ select gender from students group by gender;
 +--------+
 #group by gender将table按gender分组，select 后的属性必须是这个组成员里面独有的(常常就写分组时的属性)
 
-select gender avg(age) from students group by gender;
+select gender, avg(age) from students group by gender;
 结果：
 +--------+----------+
 | gender | avg(age) |
@@ -371,7 +376,7 @@ select * from students limit 4,3;
 +----+--------+------+--------+--------+--------+----------------------+
 从第5个开始，显示3个条目
 
-# 第一个数字代表起始位置的下标，第二个数字代表显示的个数，若只有一个数字那么该数字代表显示的个数(从第一个开始显示)
+# 第一个数字代表起始位置的下标，第二个数字代表显示的个数，两个数字之间用逗号隔开；若只有一个数字那么该数字代表显示的个数(从第一个开始显示)
 # limit放在语句的最后面.
 
 ```
@@ -381,7 +386,8 @@ select * from students limit 4,3;
 ## 8 链接查询
 
 ```mysql
-#链接分为三种---- 内链接 左链接 右链接 分别对应inner join ,left join, right join. 
+# 链接分为三种---- 内链接 左链接 右链接 分别对应inner join ,left join, right join. 
+# 链接出现的位置在两表格之间，     A inner/left/right join B on A.xx = B.xx    不要写错位置
 
 #内连接 取交集（inner join on） ：
 select * from students inner join classes;
@@ -395,7 +401,7 @@ select s.name, c.name from students as s inner join classes as c on s.cls_id=c.i
  #注意select后面的属性要用逗号隔开.
  #as放在原名的后面. 
  #原名被改后所有地方都用不了原名
- #这个不会显示出s.name以及c.name的字样，而是显示name name,因为"."只是表明属性而已；此外这里写成s.name as a, c.name as b是没问题的，表格和属性同时都有as并不影响.
+ #这个不会显示出s.name以及c.name的字样 而是显示name name,因为"."只是表明属性而已！！ 此外这里写成s.name as a, c.name as b是没问题的，表格和属性同时都有as并不影响.
  
  select s.name, c.name from students as s left join classes as c on s.cls_id=c.id ;
  #左链接用left join表示，左连接以left join字符左边的table为基准，以上面的语句为例，其和inner join的区别就是students列表中s.cls_id != c.id的会以null显示.
@@ -450,6 +456,7 @@ classes列表的内容
    
    select s.name, c.name from students as s left join classes as c on s.cls_id=c.id  having c.id is null; 
    这句话会运行出错，这里并没有group语句，having作用的结果是select s.name c.name之后的列表，而这个列表中并没有c.id这个信息，将这里的s.name ，c.name改成"*"就可以了.
+  显然即使不分组也可以使用having, 相当于每条记录都是一个组。
 ```
 
 
