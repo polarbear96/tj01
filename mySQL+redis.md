@@ -198,6 +198,7 @@ drop table ok   #删除ok这个列表
 delete from ok where id=5;   #删除ok列表中id为5的记录
 
 #  delete from ok 将删除所有成员    drop table ok直接将此table删除。
+# 删除数据库 删除table 删除字段都是用drop 删除表单中的记录用delete
 
 ```
 
