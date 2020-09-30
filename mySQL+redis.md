@@ -1,6 +1,6 @@
 #                                                                 mySQL笔记
 
-
+## sql语句的优化：(csdn-sql)[https://blog.csdn.net/jie_liang/article/details/77340905]
 
 ## 数据库的基本使用
 
