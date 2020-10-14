@@ -1,6 +1,8 @@
 #                                                                 mySQL笔记
 
 ## sql语句的优化：(csdn-sql)[https://blog.csdn.net/jie_liang/article/details/77340905]
+## MyISAM和InnoDB的区别 (csdn)[https://blog.csdn.net/qq_35642036/article/details/82820178] 
+## 数据库的各个隔离级别所解决的问题 (csdn)[https://my.oschina.net/bigdataer/blog/1976010]
 
 ## 数据库的基本使用
 
